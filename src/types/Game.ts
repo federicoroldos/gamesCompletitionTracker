@@ -1,5 +1,14 @@
-export type GameStatus = 'pendiente' | 'jugando' | 'pasado';
-export type GameRanking = 'F' | 'E' | 'D' | 'C' | 'B' | 'A' | 'S' | 'GOTY';
+export type GameStatus =
+  | 'Platino'
+  | 'Completado'
+  | 'Pasado'
+  | 'Empezado'
+  | 'Sin probar'
+  | 'Abandonado'
+  | 'Probado'
+  | 'No aplica';
+
+export type GameRanking = 'S+' | 'S' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
 
 export interface Game {
   id: string;
@@ -9,4 +18,13 @@ export interface Game {
   ranking: GameRanking;
   comment: string;
   createdAt: string;
+  releaseDate?: string;
+  publisher?: string;
+  genres?: string;
+  firstPlayedAt?: string;
+  startDate?: string;
+  endDate?: string;
+  lastSessionHours?: number | null;
+  yearsPlayed?: string;
+  totalHours?: number | null;
 }

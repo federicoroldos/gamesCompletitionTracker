@@ -1,8 +1,8 @@
 import { ChangeEvent, useRef, useState } from 'react';
 import {
-  createBackupFileOnDrive,
-  downloadFromDrive,
-  uploadToDrive
+  ensureAppDataFile,
+  downloadFromAppData,
+  uploadToAppData
 } from '../utils/googleDriveClient';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
@@ -17,6 +17,32 @@ const BackupPanel = ({ onExportJson, onImportJson }: Props) => {
   const [driveFileId, setDriveFileId] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const ensureFile = async (token: string) => {
+    setLoading(true);
+    setStatus('Buscando/creando backup en Drive (appData)...');
+    try {
+      const id = await ensureAppDataFile(token);
+      setDriveFileId(id);
+      setStatus('Archivo listo en appDataFolder');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error al preparar el archivo en Drive';
+      setStatus(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEnsure = () => {
+    if (!accessToken) {
+      setStatus('Inicia sesión con Google para preparar el archivo en Drive');
+      return;
+    }
+    void ensureFile(accessToken);
+  };
+
+  const canUseDrive = Boolean(accessToken && driveFileId);
 
   const handleDownloadFile = () => {
     const json = onExportJson();
@@ -57,14 +83,14 @@ const BackupPanel = ({ onExportJson, onImportJson }: Props) => {
       return;
     }
     if (!driveFileId) {
-      setStatus('Ingresa un fileId de Drive');
-      return;
+      await ensureFile(accessToken);
+      if (!driveFileId) return;
     }
     setLoading(true);
-    setStatus('Subiendo a Google Drive...');
+    setStatus('Subiendo a Google Drive (appData)...');
     try {
-      await uploadToDrive(accessToken, driveFileId, onExportJson());
-      setStatus('Backup subido a Google Drive');
+      await uploadToAppData(accessToken, driveFileId, onExportJson());
+      setStatus('Backup subido a Google Drive (appData)');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al subir a Drive';
       setStatus(message);
@@ -79,13 +105,13 @@ const BackupPanel = ({ onExportJson, onImportJson }: Props) => {
       return;
     }
     if (!driveFileId) {
-      setStatus('Ingresa un fileId de Drive');
-      return;
+      await ensureFile(accessToken);
+      if (!driveFileId) return;
     }
     setLoading(true);
-    setStatus('Descargando de Google Drive...');
+    setStatus('Descargando de Google Drive (appData)...');
     try {
-      const content = await downloadFromDrive(accessToken, driveFileId);
+      const content = await downloadFromAppData(accessToken, driveFileId);
       const result = onImportJson(content);
       setStatus(
         result.ok
@@ -143,26 +169,17 @@ const BackupPanel = ({ onExportJson, onImportJson }: Props) => {
               </button>
             )}
           </div>
-          <label className="field">
-            <span>ID de archivo (fileId) en Drive</span>
-            <input
-              type="text"
-              value={driveFileId}
-              onChange={(e) => setDriveFileId(e.target.value)}
-              placeholder="Ej. 1AbCDeFg..."
-            />
-          </label>
           <div className="backup-buttons drive-actions">
-            <button className="button" type="button" onClick={handleCreateDriveFile} disabled={loading || authLoading}>
-              Crear archivo en Drive
+            <button className="button" type="button" onClick={handleEnsure} disabled={loading || authLoading}>
+              Preparar archivo
             </button>
-            <button className="button" onClick={handleUploadDrive} disabled={loading || authLoading}>
+            <button className="button" onClick={handleUploadDrive} disabled={loading || authLoading || !accessToken}>
               Subir a Drive
             </button>
             <button
               className="button button--ghost"
               onClick={handleDownloadDrive}
-              disabled={loading || authLoading}
+              disabled={loading || authLoading || !accessToken}
             >
               Descargar de Drive
             </button>
@@ -188,7 +205,7 @@ const BackupPanel = ({ onExportJson, onImportJson }: Props) => {
             />
           </div>
           <p className="muted subnote">
-            Exporta/Importa en JSON localmente o sincroniza con Dropbox (requiere token de acceso personal).
+            Exporta/Importa en JSON localmente o sincroniza con Google Drive (appDataFolder).
           </p>
         </div>
       </div>

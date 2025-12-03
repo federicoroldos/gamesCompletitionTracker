@@ -1,12 +1,53 @@
 const UPLOAD_URL = 'https://www.googleapis.com/upload/drive/v3/files';
 const DOWNLOAD_URL = 'https://www.googleapis.com/drive/v3/files';
 const FILES_URL = 'https://www.googleapis.com/drive/v3/files';
+const APP_DATA_QUERY = "name = 'gametracker-backup.json' and trashed = false and 'appDataFolder' in parents";
+const BACKUP_FILENAME = 'gametracker-backup.json';
 
-export const uploadToDrive = async (token: string, fileId: string, content: string) => {
-  if (!fileId) {
-    throw new Error('Debes indicar un fileId de Drive donde guardar el backup');
+export const ensureAppDataFile = async (token: string, name = BACKUP_FILENAME) => {
+  const listUrl = `${FILES_URL}?q=${encodeURIComponent(APP_DATA_QUERY)}&spaces=appDataFolder&fields=files(id,name)`;
+  const listResponse = await fetch(listUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+
+  if (!listResponse.ok) {
+    const errorText = await listResponse.text();
+    throw new Error(`Error al listar archivos en appDataFolder: ${errorText || listResponse.statusText}`);
   }
 
+  const listData = (await listResponse.json()) as { files?: Array<{ id: string }> };
+  if (listData.files && listData.files.length > 0) {
+    return listData.files[0].id;
+  }
+
+  const createResponse = await fetch(FILES_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name,
+      mimeType: 'application/json',
+      parents: ['appDataFolder']
+    })
+  });
+
+  if (!createResponse.ok) {
+    const errorText = await createResponse.text();
+    throw new Error(`Error al crear archivo en appDataFolder: ${errorText || createResponse.statusText}`);
+  }
+
+  const data = (await createResponse.json()) as { id?: string };
+  if (!data.id) {
+    throw new Error('No se pudo obtener el ID del archivo creado en appDataFolder');
+  }
+  return data.id;
+};
+
+export const uploadToAppData = async (token: string, fileId: string, content: string) => {
   const url = `${UPLOAD_URL}/${fileId}?uploadType=media`;
   const response = await fetch(url, {
     method: 'PATCH',
@@ -19,15 +60,11 @@ export const uploadToDrive = async (token: string, fileId: string, content: stri
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Error al subir a Google Drive: ${errorText || response.statusText}`);
+    throw new Error(`Error al subir a Drive (appData): ${errorText || response.statusText}`);
   }
 };
 
-export const downloadFromDrive = async (token: string, fileId: string) => {
-  if (!fileId) {
-    throw new Error('Debes indicar un fileId de Drive para descargar el backup');
-  }
-
+export const downloadFromAppData = async (token: string, fileId: string) => {
   const url = `${DOWNLOAD_URL}/${fileId}?alt=media`;
   const response = await fetch(url, {
     method: 'GET',
@@ -38,33 +75,8 @@ export const downloadFromDrive = async (token: string, fileId: string) => {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Error al descargar de Google Drive: ${errorText || response.statusText}`);
+    throw new Error(`Error al descargar de Drive (appData): ${errorText || response.statusText}`);
   }
 
   return response.text();
-};
-
-export const createBackupFileOnDrive = async (token: string, name = 'gametracker-backup.json') => {
-  const response = await fetch(FILES_URL, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      name,
-      mimeType: 'application/json'
-    })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Error al crear archivo en Drive: ${errorText || response.statusText}`);
-  }
-
-  const data = (await response.json()) as { id?: string };
-  if (!data.id) {
-    throw new Error('No se pudo obtener el ID del archivo creado en Drive');
-  }
-  return data.id;
 };

@@ -1,11 +1,23 @@
 import { useEffect, useState } from 'react';
-import { Game, GameRanking } from '../types/Game';
+import { Game, GameRanking, GameStatus } from '../types/Game';
 
 const STORAGE_KEY = 'gametracker_games';
 
 type GameInput = Omit<Game, 'id' | 'createdAt'>;
 
-const DEFAULT_RANKING: GameRanking = 'F';
+const DEFAULT_RANKING: GameRanking = 'G';
+const DEFAULT_STATUS: GameStatus = 'Probado';
+const VALID_STATUSES: GameStatus[] = [
+  'Platino',
+  'Completado',
+  'Pasado',
+  'Empezado',
+  'Sin probar',
+  'Abandonado',
+  'Probado',
+  'No aplica'
+];
+const VALID_RANKINGS: GameRanking[] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const loadGames = (): Game[] => {
   try {
@@ -25,7 +37,14 @@ const loadGames = (): Game[] => {
       )
       .map((item) => ({
         ...item,
-        ranking: item.ranking ?? DEFAULT_RANKING
+        ranking: VALID_RANKINGS.includes(item.ranking as GameRanking)
+          ? (item.ranking as GameRanking)
+          : DEFAULT_RANKING,
+        status: VALID_STATUSES.includes(item.status as GameStatus)
+          ? (item.status as GameStatus)
+          : DEFAULT_STATUS,
+        lastSessionHours: item.lastSessionHours ?? null,
+        totalHours: item.totalHours ?? null
       }));
   } catch {
     return [];

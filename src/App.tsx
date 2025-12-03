@@ -3,12 +3,13 @@ import GameFilters from './components/GameFilters';
 import GameForm from './components/GameForm';
 import GameList from './components/GameList';
 import BackupPanel from './components/BackupPanel';
+import LegendPanel from './components/LegendPanel';
 import { useGameStorage } from './hooks/useGameStorage';
 import { Game, GameRanking, GameStatus } from './types/Game';
 
 type SortOption = 'fecha' | 'titulo' | 'ranking';
 
-const rankingOrder: GameRanking[] = ['GOTY', 'S', 'A', 'B', 'C', 'D', 'E', 'F'];
+const rankingOrder: GameRanking[] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const App = () => {
   const { games, addGame, updateGame, deleteGame, exportJson, importJson } = useGameStorage();
@@ -79,15 +80,17 @@ const App = () => {
             <span className="stat__value">{games.length}</span>
           </div>
           <div className="stat">
-            <span className="stat__label">Jugando</span>
-            <span className="stat__value">
-              {games.filter((g) => g.status === 'jugando').length}
-            </span>
+            <span className="stat__label">Empezado</span>
+            <span className="stat__value">{games.filter((g) => g.status === 'Empezado').length}</span>
           </div>
           <div className="stat">
-            <span className="stat__label">Pendientes</span>
+            <span className="stat__label">Platino</span>
+            <span className="stat__value">{games.filter((g) => g.status === 'Platino').length}</span>
+          </div>
+          <div className="stat">
+            <span className="stat__label">Sin probar</span>
             <span className="stat__value">
-              {games.filter((g) => g.status === 'pendiente').length}
+              {games.filter((g) => g.status === 'Sin probar').length}
             </span>
           </div>
         </div>
@@ -122,6 +125,7 @@ const App = () => {
       </main>
 
       <BackupPanel onExportJson={exportJson} onImportJson={importJson} />
+      <LegendPanel />
     </div>
   );
 };

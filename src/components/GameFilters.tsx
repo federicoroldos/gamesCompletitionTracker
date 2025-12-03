@@ -13,21 +13,27 @@ interface Props {
 
 const statusLabels: Record<GameStatus | 'todos', string> = {
   todos: 'Todos',
-  pendiente: 'Pendiente',
-  jugando: 'Jugando',
-  pasado: 'Pasado'
+  Platino: 'Platino',
+  Completado: 'Completado',
+  Pasado: 'Pasado',
+  Empezado: 'Empezado',
+  'Sin probar': 'Sin probar',
+  Abandonado: 'Abandonado',
+  Probado: 'Probado',
+  'No aplica': 'No aplica'
 };
 
 const rankingOptions: Record<GameRanking | 'todos', string> = {
   todos: 'Todos',
-  GOTY: 'GOTY',
+  'S+': 'S+',
   S: 'S',
   A: 'A',
   B: 'B',
   C: 'C',
   D: 'D',
   E: 'E',
-  F: 'F'
+  F: 'F',
+  G: 'G'
 };
 
 const GameFilters = ({
