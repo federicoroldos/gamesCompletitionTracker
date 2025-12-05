@@ -223,7 +223,6 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
       <div className="backup-console">
         <div className="backup-console__header">
           <span>Consola de respaldo</span>
-          <span className="backup-console__badge">LIVE</span>
         </div>
         <div className="backup-console__body">
           {logs.length ? (
