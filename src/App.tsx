@@ -122,17 +122,29 @@ const App = () => {
             <span className="stat__value">{games.length}</span>
           </div>
           <div className="stat">
+            <span className="stat__label">Sin probar</span>
+            <span className="stat__value">
+              {games.filter((g) => g.status === 'Sin probar').length}
+            </span>
+          </div>
+          <div className="stat">
             <span className="stat__label">Empezado</span>
             <span className="stat__value">{games.filter((g) => g.status === 'Empezado').length}</span>
+          </div>
+          <div className="stat">
+            <span className="stat__label">Completado</span>
+            <span className="stat__value">
+              {games.filter((g) => g.status === 'Completado').length}
+            </span>
           </div>
           <div className="stat">
             <span className="stat__label">Platino</span>
             <span className="stat__value">{games.filter((g) => g.status === 'Platino').length}</span>
           </div>
           <div className="stat">
-            <span className="stat__label">Sin probar</span>
+            <span className="stat__label">Abandonado</span>
             <span className="stat__value">
-              {games.filter((g) => g.status === 'Sin probar').length}
+              {games.filter((g) => g.status === 'Abandonado').length}
             </span>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { ChangeEvent, useRef, useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { downloadFromAppData, ensureAppDataFile, uploadToAppData } from '../utils/googleDriveClient';
 import { parseExcelFile } from '../utils/excelImport';
 import { Game } from '../types/Game';
@@ -17,6 +17,8 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
   const [driveFileId, setDriveFileId] = useState('');
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const hasDriveSession = Boolean(user && accessToken);
+  const driveHintShownRef = useRef(false);
 
   const pushStatus = (message: string) => {
     const entry = `[${new Date().toLocaleTimeString()}] ${message}`;
@@ -30,21 +32,23 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
       const id = await ensureAppDataFile(token);
       setDriveFileId(id);
       pushStatus('Archivo listo en appDataFolder');
+      return id;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Error al preparar el archivo en Drive';
       pushStatus(message);
+      return '';
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEnsure = () => {
-    if (!accessToken) {
-      pushStatus('Inicia sesión con Google para preparar el archivo en Drive');
-      return;
+  const ensureDriveSession = () => {
+    if (!hasDriveSession) {
+      pushStatus('Primero inicia sesion con Google para usar Google Drive.');
+      return '';
     }
-    void ensureFile(accessToken);
+    return accessToken ?? '';
   };
 
   const handleDownloadFile = () => {
@@ -104,18 +108,16 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
   };
 
   const handleUploadDrive = async () => {
-    if (!accessToken) {
-      pushStatus('Inicia sesión con Google para obtener el token de Drive');
-      return;
-    }
-    if (!driveFileId) {
-      await ensureFile(accessToken);
-      if (!driveFileId) return;
-    }
+    const token = ensureDriveSession();
+    if (!token) return;
+
+    const fileId = driveFileId || (await ensureFile(token));
+    if (!fileId) return;
+
     setLoading(true);
     pushStatus('Subiendo a Google Drive (appData)...');
     try {
-      await uploadToAppData(accessToken, driveFileId, onExportJson());
+      await uploadToAppData(token, fileId, onExportJson());
       pushStatus('Backup subido a Google Drive (appData)');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al subir a Drive';
@@ -126,18 +128,16 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
   };
 
   const handleDownloadDrive = async () => {
-    if (!accessToken) {
-      pushStatus('Inicia sesión con Google para obtener el token de Drive');
-      return;
-    }
-    if (!driveFileId) {
-      await ensureFile(accessToken);
-      if (!driveFileId) return;
-    }
+    const token = ensureDriveSession();
+    if (!token) return;
+
+    const fileId = driveFileId || (await ensureFile(token));
+    if (!fileId) return;
+
     setLoading(true);
     pushStatus('Descargando de Google Drive (appData)...');
     try {
-      const content = await downloadFromAppData(accessToken, driveFileId);
+      const content = await downloadFromAppData(token, fileId);
       const result = onImportJson(content);
       pushStatus(
         result.ok
@@ -153,34 +153,51 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (accessToken && !driveFileId && !loading) {
+      void ensureFile(accessToken);
+    }
+  }, [accessToken, driveFileId, loading]);
+
+  useEffect(() => {
+    if (!hasDriveSession && !authLoading && !driveHintShownRef.current) {
+      pushStatus('Inicia con Google para habilitar las acciones de Drive.');
+      driveHintShownRef.current = true;
+    }
+    if (hasDriveSession) {
+      driveHintShownRef.current = false;
+    }
+  }, [hasDriveSession, authLoading]);
+
   return (
     <div className="panel panel--stacked">
-      <h2>Respaldo y sincronización</h2>
+      <h2>Respaldo y sincronizacion</h2>
       <div className="backup-actions">
         <div className="backup-group">
           <h3>Google Drive</h3>
           <div className="auth-row">
             <p className="muted">
-              {user ? `Sesión: ${user.email ?? user.displayName ?? 'Usuario'}` : 'Sin sesión'}
+              {user ? `Sesion: ${user.email ?? user.displayName ?? 'Usuario'}` : 'Sin sesion'}
             </p>
           </div>
           <div className="backup-buttons drive-actions">
-            <button className="button" type="button" onClick={handleEnsure} disabled={loading || authLoading}>
-              Preparar archivo
-            </button>
-            <button className="button" onClick={handleUploadDrive} disabled={loading || authLoading || !accessToken}>
+            <button
+              className="button"
+              onClick={handleUploadDrive}
+              disabled={loading || authLoading}
+            >
               Subir a Drive
             </button>
             <button
               className="button button--ghost"
               onClick={handleDownloadDrive}
-              disabled={loading || authLoading || !accessToken}
+              disabled={loading || authLoading}
             >
               Descargar de Drive
             </button>
             {user ? (
               <button className="button button--ghost" onClick={signOut} disabled={authLoading}>
-                Cerrar sesión
+                Cerrar sesion
               </button>
             ) : (
               <button className="button" onClick={signIn} disabled={authLoading}>
@@ -223,7 +240,6 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
       <div className="backup-console">
         <div className="backup-console__header">
           <span>Consola de respaldo</span>
-          <span className="backup-console__badge">LIVE</span>
         </div>
         <div className="backup-console__body">
           {logs.length ? (
@@ -233,7 +249,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
               </div>
             ))
           ) : (
-            <p className="muted">Sin eventos aún.</p>
+            <p className="muted">Sin eventos aun.</p>
           )}
         </div>
       </div>

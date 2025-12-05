@@ -22,8 +22,9 @@ export const useGoogleAuth = () => {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (nextUser) => {
       setUser(nextUser);
-      // El access token de Drive solo se obtiene al iniciar sesión; si recargas, pide login para renovarlo.
-      setAccessToken(null);
+      if (!nextUser) {
+        setAccessToken(null);
+      }
     });
     return () => unsub();
   }, [auth]);

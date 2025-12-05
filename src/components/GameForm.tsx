@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+﻿import { ChangeEvent, FormEvent, useState } from 'react';
 import { Game } from '../types/Game';
 
 type GameInput = Omit<Game, 'id' | 'createdAt'>;
@@ -71,7 +71,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formState.title.trim()) {
-      setError('El título es obligatorio');
+      setError('El tÃ­tulo es obligatorio');
       return;
     }
 
@@ -84,7 +84,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
     <form className="form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <label className="field">
-          <span>Título *</span>
+          <span>TÃ­tulo *</span>
           <input
             type="text"
             value={formState.title}
@@ -171,12 +171,12 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Género(s)</span>
+            <span>GÃ©nero(s)</span>
             <input
               type="text"
               value={formState.genres || ''}
               onChange={handleChange('genres')}
-              placeholder="Acción, RPG, Soulslike"
+              placeholder="AcciÃ³n, RPG, Soulslike"
             />
           </label>
 
@@ -192,7 +192,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Fecha comienzo (última partida)</span>
+            <span>Fecha comienzo (Ãºltima partida)</span>
             <input
               type="text"
               inputMode="numeric"
@@ -214,7 +214,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Horas jugadas (última partida)</span>
+            <span>Horas jugadas (Ãºltima partida)</span>
             <input
               type="number"
               min="0"
@@ -226,7 +226,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Años pasado</span>
+            <span>Año completado</span>
             <input
               type="text"
               value={formState.yearsPlayed || ''}
@@ -256,7 +256,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             value={formState.comment}
             onChange={handleChange('comment')}
             rows={3}
-            placeholder="Notas rápidas, impresiones, etc."
+            placeholder="Notas rÃ¡pidas, impresiones, etc."
           />
         </label>
       )}
@@ -278,3 +278,9 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
 };
 
 export default GameForm;
+
+
+
+
+
+

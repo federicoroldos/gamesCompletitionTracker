@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
+﻿import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
 import { Game } from "../types/Game";
 
 interface Props {
@@ -76,7 +76,7 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
           <span>Inicio ultima</span>
           <span>Fin</span>
           <span>Horas ultima</span>
-          <span>Anos pasado</span>
+          <span>Año completado</span>
           <span>Horas totales</span>
           <span>Comentario</span>
           <span>Acciones</span>
@@ -121,3 +121,5 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
 };
 
 export default GameList;
+
+

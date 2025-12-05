@@ -82,7 +82,9 @@ export const parseExcelFile = async (file: File): Promise<GameInput[]> => {
   const idxInicio = indexOf('fecha de comienzo');
   const idxFin = indexOf('fecha de fin');
   const idxHorasUlt = indexOf('horas jugadas');
-  const idxYears = indexOf('años pasado');
+  // Soporta tanto el nombre nuevo como el anterior para compatibilidad con archivos viejos.
+  const idxYears =
+    indexOf('año completado') >= 0 ? indexOf('año completado') : indexOf('años pasado');
   const idxHorasTot = indexOf('horas totales');
 
   const dataRows = rows.slice(3); // start after header
@@ -122,3 +124,5 @@ export const parseExcelFile = async (file: File): Promise<GameInput[]> => {
 
   return games;
 };
+
+
