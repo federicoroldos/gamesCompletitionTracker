@@ -86,6 +86,10 @@ export const useGameStorage = () => {
 
   const exportJson = () => JSON.stringify(games, null, 2);
 
+  const clearGames = () => {
+    setGames([]);
+  };
+
   const importJson = (json: string) => {
     try {
       const data = JSON.parse(json);
@@ -123,5 +127,14 @@ export const useGameStorage = () => {
     return mapped.length;
   };
 
-  return { games, addGame, addMany, updateGame, deleteGame, exportJson, importJson };
+  return {
+    games,
+    addGame,
+    addMany,
+    updateGame,
+    deleteGame,
+    clearGames,
+    exportJson,
+    importJson
+  };
 };

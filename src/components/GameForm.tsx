@@ -154,7 +154,6 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             <input
               type="text"
               inputMode="numeric"
-              pattern="\\d{2}/\\d{2}/\\d{4}"
               value={formState.releaseDate || ''}
               onChange={handleChange('releaseDate')}
               placeholder="dd/mm/yyyy"
@@ -186,7 +185,6 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             <input
               type="text"
               inputMode="numeric"
-              pattern="\\d{2}/\\d{2}/\\d{4}"
               value={formState.firstPlayedAt || ''}
               onChange={handleChange('firstPlayedAt')}
               placeholder="dd/mm/yyyy"
@@ -198,7 +196,6 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             <input
               type="text"
               inputMode="numeric"
-              pattern="\\d{2}/\\d{2}/\\d{4}"
               value={formState.startDate || ''}
               onChange={handleChange('startDate')}
               placeholder="dd/mm/yyyy"
@@ -210,7 +207,6 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             <input
               type="text"
               inputMode="numeric"
-              pattern="\\d{2}/\\d{2}/\\d{4}"
               value={formState.endDate || ''}
               onChange={handleChange('endDate')}
               placeholder="dd/mm/yyyy"

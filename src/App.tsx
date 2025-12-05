@@ -12,8 +12,16 @@ type SortOption = 'titulo' | 'ranking';
 const rankingOrder: GameRanking[] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const App = () => {
-  const { games, addGame, addMany, updateGame, deleteGame, exportJson, importJson } =
-    useGameStorage();
+  const {
+    games,
+    addGame,
+    addMany,
+    updateGame,
+    deleteGame,
+    clearGames,
+    exportJson,
+    importJson
+  } = useGameStorage();
   const [statusFilter, setStatusFilter] = useState<GameStatus | 'todos'>('todos');
   const [rankingFilter, setRankingFilter] = useState<GameRanking | 'todos'>('todos');
   const [sortBy, setSortBy] = useState<SortOption>('titulo');
@@ -88,6 +96,15 @@ const App = () => {
 
   const handleCancelEdit = () => setEditing(null);
 
+  const handleDeleteAll = () => {
+    if (!games.length) return;
+    const confirmed = window.confirm('¿Seguro que quieres borrar todos los registros?');
+    if (confirmed) {
+      clearGames();
+      setPage(1);
+    }
+  };
+
   return (
     <div className="app">
       <header className="app__header">
@@ -136,56 +153,77 @@ const App = () => {
           <div className="games-content">
             <div className="panel__header">
               <h2>Juegos guardados</h2>
-              <form className="search-box" onSubmit={handleSearchSubmit}>
-                <input
-                  type="text"
-                  placeholder="Buscar por título..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+              <div className="panel__controls">
+                <form className="search-box" onSubmit={handleSearchSubmit}>
+                  <label className="field search-box__field">
+                    <span>Buscar</span>
+                    <div className="search-box__row">
+                      <input
+                        type="text"
+                        placeholder="Buscar por titulo..."
+                        value={searchInput}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                      />
+                      <button type="submit" className="button button--ghost">
+                        Buscar
+                      </button>
+                    </div>
+                  </label>
+                </form>
+                <GameFilters
+                  statusFilter={statusFilter}
+                  rankingFilter={rankingFilter}
+                  sortBy={sortBy}
+                  onStatusChange={setStatusFilter}
+                  onRankingChange={setRankingFilter}
+                  onSortChange={setSortBy}
                 />
-                <button type="submit" className="button button--ghost">
-                  Buscar
-                </button>
-              </form>
-              <GameFilters
-                statusFilter={statusFilter}
-                rankingFilter={rankingFilter}
-                sortBy={sortBy}
-                onStatusChange={setStatusFilter}
-                onRankingChange={setRankingFilter}
-                onSortChange={setSortBy}
-              />
+              </div>
             </div>
 
-            <GameList games={pagedGames} onEdit={handleEdit} onDelete={deleteGame} />
-            <div className="pagination">
+            <GameList
+              games={pagedGames}
+              onEdit={handleEdit}
+              onDelete={deleteGame}
+              resetScrollKey={`${page}-${search}-${statusFilter}-${rankingFilter}-${sortBy}`}
+            />
+            <div className="table-footer">
+              <div className="pagination">
+                <button
+                  className="page-btn"
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  aria-label="Primera página"
+                >
+                  «
+                </button>
+                {Array.from({ length: pageCount }, (_, idx) => idx + 1)
+                  .filter((n) => n >= page - 1 && n <= page + 4)
+                  .map((n) => (
+                    <button
+                      key={n}
+                      className={`page-btn ${n === page ? 'page-btn--active' : ''}`}
+                      onClick={() => setPage(n)}
+                      aria-label={`Página ${n}`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                <button
+                  className="page-btn"
+                  onClick={() => setPage(pageCount)}
+                  disabled={page === pageCount}
+                  aria-label="Última página"
+                >
+                  »
+                </button>
+              </div>
               <button
-                className="page-btn"
-                onClick={() => setPage(1)}
-                disabled={page === 1}
-                aria-label="Primera página"
+                className="button button--danger delete-all-btn"
+                onClick={handleDeleteAll}
+                disabled={!games.length}
               >
-                «
-              </button>
-              {Array.from({ length: pageCount }, (_, idx) => idx + 1)
-                .filter((n) => n >= page - 1 && n <= page + 4)
-                .map((n) => (
-                  <button
-                    key={n}
-                    className={`page-btn ${n === page ? 'page-btn--active' : ''}`}
-                    onClick={() => setPage(n)}
-                    aria-label={`Página ${n}`}
-                  >
-                    {n}
-                  </button>
-                ))}
-              <button
-                className="page-btn"
-                onClick={() => setPage(pageCount)}
-                disabled={page === pageCount}
-                aria-label="Última página"
-              >
-                »
+                Borrar todos
               </button>
             </div>
           </div>

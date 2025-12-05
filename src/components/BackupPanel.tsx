@@ -1,9 +1,5 @@
 import { ChangeEvent, useRef, useState } from 'react';
-import {
-  ensureAppDataFile,
-  downloadFromAppData,
-  uploadToAppData
-} from '../utils/googleDriveClient';
+import { downloadFromAppData, ensureAppDataFile, uploadToAppData } from '../utils/googleDriveClient';
 import { parseExcelFile } from '../utils/excelImport';
 import { Game } from '../types/Game';
 import { useGoogleAuth } from '../hooks/useGoogleAuth';
@@ -19,20 +15,25 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
   const excelInputRef = useRef<HTMLInputElement | null>(null);
   const { user, accessToken, loading: authLoading, signIn, signOut } = useGoogleAuth();
   const [driveFileId, setDriveFileId] = useState('');
-  const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [logs, setLogs] = useState<string[]>([]);
+
+  const pushStatus = (message: string) => {
+    const entry = `[${new Date().toLocaleTimeString()}] ${message}`;
+    setLogs((prev) => [...prev, entry].slice(-80));
+  };
 
   const ensureFile = async (token: string) => {
     setLoading(true);
-    setStatus('Buscando/creando backup en Drive (appData)...');
+    pushStatus('Buscando/creando backup en Drive (appData)...');
     try {
       const id = await ensureAppDataFile(token);
       setDriveFileId(id);
-      setStatus('Archivo listo en appDataFolder');
+      pushStatus('Archivo listo en appDataFolder');
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Error al preparar el archivo en Drive';
-      setStatus(message);
+      pushStatus(message);
     } finally {
       setLoading(false);
     }
@@ -40,13 +41,11 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
 
   const handleEnsure = () => {
     if (!accessToken) {
-      setStatus('Inicia sesión con Google para preparar el archivo en Drive');
+      pushStatus('Inicia sesión con Google para preparar el archivo en Drive');
       return;
     }
     void ensureFile(accessToken);
   };
-
-  const canUseDrive = Boolean(accessToken && driveFileId);
 
   const handleDownloadFile = () => {
     const json = onExportJson();
@@ -57,7 +56,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
     link.download = 'gametracker-backup.json';
     link.click();
     URL.revokeObjectURL(url);
-    setStatus('Exportado a archivo local');
+    pushStatus('Exportado a archivo local');
   };
 
   const handleOpenFile = () => {
@@ -75,7 +74,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
     reader.onload = () => {
       const content = String(reader.result ?? '');
       const result = onImportJson(content);
-      setStatus(
+      pushStatus(
         result.ok
           ? `Importado correctamente (${result.count ?? 0} registros)`
           : result.message || 'Error al importar'
@@ -89,15 +88,15 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    setStatus('Importando Excel...');
+    pushStatus('Importando Excel...');
     try {
       const parsed = await parseExcelFile(file);
       onImportExcel(parsed);
-      setStatus(`Importado desde Excel (${parsed.length} registros)`);
+      pushStatus(`Importado desde Excel (${parsed.length} registros)`);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Error al importar Excel (usa el archivo original)';
-      setStatus(message);
+      pushStatus(message);
     } finally {
       setLoading(false);
       event.target.value = '';
@@ -106,7 +105,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
 
   const handleUploadDrive = async () => {
     if (!accessToken) {
-      setStatus('Inicia sesión con Google para obtener el token de Drive');
+      pushStatus('Inicia sesión con Google para obtener el token de Drive');
       return;
     }
     if (!driveFileId) {
@@ -114,13 +113,13 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
       if (!driveFileId) return;
     }
     setLoading(true);
-    setStatus('Subiendo a Google Drive (appData)...');
+    pushStatus('Subiendo a Google Drive (appData)...');
     try {
       await uploadToAppData(accessToken, driveFileId, onExportJson());
-      setStatus('Backup subido a Google Drive (appData)');
+      pushStatus('Backup subido a Google Drive (appData)');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Error al subir a Drive';
-      setStatus(message);
+      pushStatus(message);
     } finally {
       setLoading(false);
     }
@@ -128,7 +127,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
 
   const handleDownloadDrive = async () => {
     if (!accessToken) {
-      setStatus('Inicia sesión con Google para obtener el token de Drive');
+      pushStatus('Inicia sesión con Google para obtener el token de Drive');
       return;
     }
     if (!driveFileId) {
@@ -136,11 +135,11 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
       if (!driveFileId) return;
     }
     setLoading(true);
-    setStatus('Descargando de Google Drive (appData)...');
+    pushStatus('Descargando de Google Drive (appData)...');
     try {
       const content = await downloadFromAppData(accessToken, driveFileId);
       const result = onImportJson(content);
-      setStatus(
+      pushStatus(
         result.ok
           ? `Importado desde Google Drive (${result.count ?? 0} registros)`
           : result.message || 'Error al importar'
@@ -148,27 +147,7 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Error al descargar desde Drive';
-      setStatus(message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateDriveFile = async () => {
-    if (!accessToken) {
-      setStatus('Inicia sesión con Google para crear el archivo en Drive');
-      return;
-    }
-    setLoading(true);
-    setStatus('Creando archivo en Google Drive...');
-    try {
-      const id = await createBackupFileOnDrive(accessToken, 'gametracker-backup.json');
-      setDriveFileId(id);
-      setStatus(`Archivo creado en Drive (fileId: ${id})`);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Error al crear el archivo en Drive';
-      setStatus(message);
+      pushStatus(message);
     } finally {
       setLoading(false);
     }
@@ -209,7 +188,6 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
               </button>
             )}
           </div>
-          {status && <p className="status-text">{status}</p>}
         </div>
 
         <div className="backup-group">
@@ -239,6 +217,24 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
               onChange={handleExcelChange}
             />
           </div>
+        </div>
+      </div>
+
+      <div className="backup-console">
+        <div className="backup-console__header">
+          <span>Consola de respaldo</span>
+          <span className="backup-console__badge">LIVE</span>
+        </div>
+        <div className="backup-console__body">
+          {logs.length ? (
+            logs.map((line, idx) => (
+              <div key={idx} className="backup-console__line">
+                {line}
+              </div>
+            ))
+          ) : (
+            <p className="muted">Sin eventos aún.</p>
+          )}
         </div>
       </div>
     </div>

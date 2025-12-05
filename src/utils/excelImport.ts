@@ -16,13 +16,20 @@ const STATUS_VALUES: GameStatus[] = [
 
 const RANKING_VALUES: GameRanking[] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
+const trimString = (value: unknown) => String(value ?? '').trim();
+
+const normalizeCell = (value: unknown) => {
+  if (typeof value === 'string') return value.trim();
+  return value;
+};
+
 const toStatus = (value: unknown): GameStatus => {
-  const s = String(value ?? '').trim();
+  const s = trimString(value);
   return STATUS_VALUES.includes(s as GameStatus) ? (s as GameStatus) : 'Probado';
 };
 
 const toRanking = (value: unknown): GameRanking => {
-  const s = String(value ?? '').trim();
+  const s = trimString(value);
   return RANKING_VALUES.includes(s as GameRanking) ? (s as GameRanking) : 'G';
 };
 
@@ -61,7 +68,7 @@ export const parseExcelFile = async (file: File): Promise<GameInput[]> => {
   // Header is in row 3 (index 2)
   const header = rows[2] || [];
   const indexOf = (name: string) =>
-    header.findIndex((h) => typeof h === 'string' && h.toLowerCase().startsWith(name));
+    header.findIndex((h) => typeof h === 'string' && h.trim().toLowerCase().startsWith(name));
 
   const idxNombre = indexOf('nombre');
   const idxPlataforma = indexOf('plataforma');
@@ -83,29 +90,30 @@ export const parseExcelFile = async (file: File): Promise<GameInput[]> => {
 
   for (const row of dataRows) {
     if (!row || row.length === 0) continue;
-    const title = row[idxNombre];
+    const normalizedRow = row.map(normalizeCell);
+    const title = normalizedRow[idxNombre];
     if (!title) continue;
 
     const game: GameInput = {
-      title: String(title),
-      platform: idxPlataforma >= 0 ? String(row[idxPlataforma] ?? '') : '',
-      status: toStatus(idxEstado >= 0 ? row[idxEstado] : ''),
-      ranking: toRanking(idxTier >= 0 ? row[idxTier] : ''),
-      comment: idxNotas >= 0 ? String(row[idxNotas] ?? '') : '',
-      releaseDate: toDateString(idxRelease >= 0 ? row[idxRelease] : ''),
-      publisher: idxPublisher >= 0 ? String(row[idxPublisher] ?? '') : '',
-      genres: idxGenero >= 0 ? String(row[idxGenero] ?? '') : '',
-      firstPlayedAt: toDateString(idxPrimera >= 0 ? row[idxPrimera] : ''),
-      startDate: toDateString(idxInicio >= 0 ? row[idxInicio] : ''),
-      endDate: toDateString(idxFin >= 0 ? row[idxFin] : ''),
+      title: trimString(title),
+      platform: idxPlataforma >= 0 ? trimString(normalizedRow[idxPlataforma]) : '',
+      status: toStatus(idxEstado >= 0 ? normalizedRow[idxEstado] : ''),
+      ranking: toRanking(idxTier >= 0 ? normalizedRow[idxTier] : ''),
+      comment: idxNotas >= 0 ? trimString(normalizedRow[idxNotas]) : '',
+      releaseDate: toDateString(idxRelease >= 0 ? normalizedRow[idxRelease] : ''),
+      publisher: idxPublisher >= 0 ? trimString(normalizedRow[idxPublisher]) : '',
+      genres: idxGenero >= 0 ? trimString(normalizedRow[idxGenero]) : '',
+      firstPlayedAt: toDateString(idxPrimera >= 0 ? normalizedRow[idxPrimera] : ''),
+      startDate: toDateString(idxInicio >= 0 ? normalizedRow[idxInicio] : ''),
+      endDate: toDateString(idxFin >= 0 ? normalizedRow[idxFin] : ''),
       lastSessionHours:
-        idxHorasUlt >= 0 && row[idxHorasUlt] !== undefined && row[idxHorasUlt] !== null
-          ? Number(row[idxHorasUlt])
+        idxHorasUlt >= 0 && normalizedRow[idxHorasUlt] !== undefined && normalizedRow[idxHorasUlt] !== null
+          ? Number(normalizedRow[idxHorasUlt])
           : null,
-      yearsPlayed: idxYears >= 0 ? String(row[idxYears] ?? '') : '',
+      yearsPlayed: idxYears >= 0 ? trimString(normalizedRow[idxYears]) : '',
       totalHours:
-        idxHorasTot >= 0 && row[idxHorasTot] !== undefined && row[idxHorasTot] !== null
-          ? Number(row[idxHorasTot])
+        idxHorasTot >= 0 && normalizedRow[idxHorasTot] !== undefined && normalizedRow[idxHorasTot] !== null
+          ? Number(normalizedRow[idxHorasTot])
           : null
     };
 

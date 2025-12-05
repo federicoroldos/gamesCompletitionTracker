@@ -1,5 +1,5 @@
 # Games Progress Tracker
-Webapp simple en React + TypeScript para llevar un registro de videojuegos con CRUD y persistencia en `localStorage`.
+Webapp simple en React + TypeScript para llevar un registro de videojuegos con CRUD, filtros y persistencia en `localStorage`.
 
 ## Requisitos previos
 - Node.js 18+
@@ -13,28 +13,35 @@ npm install
 ```bash
 npm run dev
 ```
-Abrirá el servidor de Vite en modo desarrollo.
+Levanta el servidor de Vite en modo desarrollo.
 
 ## Build de producción
 ```bash
 npm run build
 ```
-El resultado quedará en `dist/`. Puedes previsualizarlo con:
+El resultado queda en `dist/`. Puedes previsualizarlo con:
 ```bash
 npm run preview
 ```
 
+## Funcionalidades
+- Agregar, editar y eliminar juegos (elimina individual o "Borrar todos").
+- Búsqueda por título, filtros por estado/ranking y ordenamiento (título A-Z o ranking). Incluye paginación (9 ítems por página).
+- Persistencia en `localStorage` y exportación/importación de backups JSON.
+- Importación desde Excel.
+- Respaldo en Google Drive (carpeta oculta `appDataFolder`) autenticándote con Google.
+
 ## Campos principales
-- Título, Plataforma(s), Estado (Platino/Completado/Pasado/Empezado/Abandonado/Probado/No aplica), Ranking (S+ a G), Publisher/Desarrollador, Género(s), fechas (lanzamiento, primera vez, inicio última, fin), horas (última y totales), años jugados, fotos (URL) y comentario.
+- Título, Plataforma(s), Estado (Platino / Completado / Pasado / Empezado / Sin probar / Abandonado / Probado / No aplica), Ranking (S+ a G), Publisher/Desarrollador, Género(s), fechas (lanzamiento, primera vez, inicio última, fin), horas (última y totales), años jugados y comentario.
 
 ## Respaldo y sincronización
-- Exportar JSON: desde la app, sección "Respaldo y sincronización" → "Exportar JSON".
+- Exportar JSON: sección "Respaldo y sincronización" → "Exportar JSON".
 - Importar JSON: "Importar JSON" y selecciona el archivo.
-- Google Drive: inicia sesión con Google (scope `drive.appdata`). El backup se guarda en la carpeta oculta `appDataFolder`, la app prepara el archivo automáticamente y no necesitas un `fileId`. Usa "Preparar archivo", luego "Subir a Drive" / "Descargar de Drive".
-- Importar Excel: desde "Respaldo y sincronización" → "Archivo local" usa "Importar Excel" con el archivo `Registro de Juegos v2 ORIGINAL.xlsm` (usa las columnas del Excel original; el campo Fotos se ignora).
+- Google Drive: inicia sesión con Google (scope `drive.appdata`). El backup se guarda en `appDataFolder`; la app prepara el archivo automáticamente y no necesitas un `fileId`. Usa "Preparar archivo", luego "Subir a Drive" / "Descargar de Drive".
+- Importar Excel: en "Archivo local" usa "Importar Excel" con tu archivo Excel (recomendado que dicho archivo cuente con los mismos campos del formulario en forma de columnas).
 
 ### Configuración de Firebase (auth con Google)
-1) Crea un proyecto en Firebase, habilita Google Sign-In en Authentication.  
+1) Crea un proyecto en Firebase y habilita Google Sign-In en Authentication.  
 2) Añade la configuración web en un archivo `.env` (ejemplo):
 ```
 VITE_FIREBASE_API_KEY=...
