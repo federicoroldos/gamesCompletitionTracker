@@ -1,4 +1,5 @@
-﻿import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, type CSSProperties } from "react";
+import { useI18n } from "../i18n";
 import { Game } from "../types/Game";
 
 interface Props {
@@ -8,10 +9,8 @@ interface Props {
   resetScrollKey?: string | number;
 }
 
-const emptyMessage =
-  "Aun no tienes juegos cargados. Agrega uno desde el formulario para empezar.";
-
 const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
+  const { t, statusLabel, formatDate } = useI18n();
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const tableCols = "1.1fr 0.55fr 0.45fr 0.32fr 0.62fr 0.55fr 0.8fr";
   const tableColsWide =
@@ -32,20 +31,8 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
   }, [resetScrollKey]);
 
   if (!games.length) {
-    return <p className="muted">{emptyMessage}</p>;
+    return <p className="muted">{t.list.empty}</p>;
   }
-
-  const formatter = new Intl.DateTimeFormat("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-
-  const formatDate = (value?: string) => {
-    if (!value) return "-";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? "-" : formatter.format(d);
-  };
 
   type TableVars = CSSProperties &
     Record<"--table-cols" | "--table-cols-wide" | "--table-min-width", string>;
@@ -65,21 +52,21 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
     <div className="table-wrapper" ref={wrapperRef}>
       <div className="table wide" style={columnStyles}>
         <div className="table__header wide" style={wideGridStyle}>
-          <span className="table__text-wrap">Titulo</span>
-          <span className="table__text-wrap">Plataforma</span>
-          <span>Estado</span>
-          <span>Ranking</span>
-          <span className="table__text-wrap">Publisher</span>
-          <span className="table__text-wrap">Generos</span>
-          <span>Fecha lanzamiento</span>
-          <span>Primera vez</span>
-          <span>Inicio ultima</span>
-          <span>Fin</span>
-          <span>Horas ultima</span>
-          <span>Año completado</span>
-          <span>Horas totales</span>
-          <span>Comentario</span>
-          <span>Acciones</span>
+          <span className="table__text-wrap">{t.list.headers.title}</span>
+          <span className="table__text-wrap">{t.list.headers.platform}</span>
+          <span>{t.list.headers.status}</span>
+          <span>{t.list.headers.ranking}</span>
+          <span className="table__text-wrap">{t.list.headers.publisher}</span>
+          <span className="table__text-wrap">{t.list.headers.genres}</span>
+          <span>{t.list.headers.releaseDate}</span>
+          <span>{t.list.headers.firstPlayed}</span>
+          <span>{t.list.headers.startDate}</span>
+          <span>{t.list.headers.endDate}</span>
+          <span>{t.list.headers.lastSession}</span>
+          <span>{t.list.headers.yearsPlayed}</span>
+          <span>{t.list.headers.totalHours}</span>
+          <span>{t.list.headers.comment}</span>
+          <span>{t.list.headers.actions}</span>
         </div>
 
         {games.map((game) => {
@@ -88,7 +75,7 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
             <div key={game.id} className="table__row wide" style={wideGridStyle}>
               <span className="text-strong table__text-wrap">{game.title}</span>
               <span className="table__text-wrap">{game.platform || "-"}</span>
-              <span className={`badge badge--${statusClass}`}>{game.status}</span>
+              <span className={`badge badge--${statusClass}`}>{statusLabel(game.status)}</span>
               <span className="badge badge--ranking">{game.ranking}</span>
               <span className="table__text-wrap">{game.publisher || "-"}</span>
               <span className="table__text-wrap">{game.genres || "-"}</span>
@@ -102,14 +89,14 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
               <span className="table__comment">{game.comment || "-"}</span>
               <span className="table__actions">
                 <button className="button button--ghost" onClick={() => onEdit(game)}>
-                  Editar
+                  {t.list.actions.edit}
                 </button>
                 <button
                   className="button button--danger"
                   onClick={() => onDelete(game.id)}
-                  aria-label={`Eliminar ${game.title}`}
+                  aria-label={`${t.list.actions.delete} ${game.title}`}
                 >
-                  Eliminar
+                  {t.list.actions.delete}
                 </button>
               </span>
             </div>
@@ -121,5 +108,3 @@ const GameList = ({ games, onEdit, onDelete, resetScrollKey }: Props) => {
 };
 
 export default GameList;
-
-

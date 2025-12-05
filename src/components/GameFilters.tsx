@@ -1,3 +1,4 @@
+import { useI18n } from '../i18n';
 import { GameRanking, GameStatus } from '../types/Game';
 
 type SortOption = 'titulo' | 'ranking';
@@ -11,31 +12,6 @@ interface Props {
   onSortChange: (value: SortOption) => void;
 }
 
-const statusLabels: Record<GameStatus | 'todos', string> = {
-  todos: 'Todos',
-  Platino: 'Platino',
-  Completado: 'Completado',
-  Pasado: 'Pasado',
-  Empezado: 'Empezado',
-  'Sin probar': 'Sin probar',
-  Abandonado: 'Abandonado',
-  Probado: 'Probado',
-  'No aplica': 'No aplica'
-};
-
-const rankingOptions: Record<GameRanking | 'todos', string> = {
-  todos: 'Todos',
-  'S+': 'S+',
-  S: 'S',
-  A: 'A',
-  B: 'B',
-  C: 'C',
-  D: 'D',
-  E: 'E',
-  F: 'F',
-  G: 'G'
-};
-
 const GameFilters = ({
   statusFilter,
   rankingFilter,
@@ -44,44 +20,48 @@ const GameFilters = ({
   onRankingChange,
   onSortChange
 }: Props) => {
+  const { t, statusLabel, rankingLabel } = useI18n();
+  const statusOptions = Object.keys(t.statuses) as (GameStatus | 'todos')[];
+  const rankingOptions = Object.keys(t.rankingLabels) as (GameRanking | 'todos')[];
+
   return (
     <div className="filters">
       <label className="field">
-        <span>Estado</span>
+        <span>{t.filters.status}</span>
         <select
           value={statusFilter}
           onChange={(event) => onStatusChange(event.target.value as GameStatus | 'todos')}
         >
-          {Object.entries(statusLabels).map(([value, label]) => (
+          {statusOptions.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {statusLabel(value)}
             </option>
           ))}
         </select>
       </label>
 
       <label className="field">
-        <span>Ranking</span>
+        <span>{t.filters.ranking}</span>
         <select
           value={rankingFilter}
           onChange={(event) => onRankingChange(event.target.value as GameRanking | 'todos')}
         >
-          {Object.entries(rankingOptions).map(([value, label]) => (
+          {rankingOptions.map((value) => (
             <option key={value} value={value}>
-              {label}
+              {rankingLabel(value)}
             </option>
           ))}
         </select>
       </label>
 
       <label className="field">
-        <span>Ordenar por</span>
+        <span>{t.filters.sortBy}</span>
         <select
           value={sortBy}
           onChange={(event) => onSortChange(event.target.value as SortOption)}
         >
-          <option value="titulo">Título (A-Z)</option>
-          <option value="ranking">Ranking</option>
+          <option value="titulo">{t.filters.sortTitle}</option>
+          <option value="ranking">{t.filters.sortRanking}</option>
         </select>
       </label>
     </div>

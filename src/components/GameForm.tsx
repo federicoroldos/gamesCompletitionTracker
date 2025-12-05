@@ -1,4 +1,5 @@
-﻿import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
+import { useI18n } from '../i18n';
 import { Game } from '../types/Game';
 
 type GameInput = Omit<Game, 'id' | 'createdAt'>;
@@ -26,7 +27,21 @@ const defaultFormState: GameInput = {
   totalHours: null
 };
 
+const statusValues: GameInput['status'][] = [
+  'Platino',
+  'Completado',
+  'Pasado',
+  'Empezado',
+  'Sin probar',
+  'Abandonado',
+  'Probado',
+  'No aplica'
+];
+
+const rankingValues: GameInput['ranking'][] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+
 const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
+  const { t, statusLabel, rankingLabel } = useI18n();
   const [formState, setFormState] = useState<GameInput>(
     initialGame
       ? {
@@ -71,7 +86,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formState.title.trim()) {
-      setError('El título es obligatorio');
+      setError(t.form.errorTitle);
       return;
     }
 
@@ -84,52 +99,45 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
     <form className="form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <label className="field">
-          <span>Título *</span>
+          <span>{t.form.labels.title}</span>
           <input
             type="text"
             value={formState.title}
             onChange={handleChange('title')}
-            placeholder="Ej. Baldur's Gate 3"
+            placeholder={t.form.placeholders.title}
             required
           />
         </label>
 
         <label className="field">
-          <span>Plataforma(s)</span>
+          <span>{t.form.labels.platform}</span>
           <input
             type="text"
             value={formState.platform}
             onChange={handleChange('platform')}
-            placeholder="PC, PS5, Switch..."
+            placeholder={t.form.placeholders.platform}
           />
         </label>
 
         <label className="field">
-          <span>Estado</span>
+          <span>{t.form.labels.status}</span>
           <select value={formState.status} onChange={handleChange('status')}>
-            <option value="Platino">Platino</option>
-            <option value="Completado">Completado</option>
-            <option value="Pasado">Pasado</option>
-            <option value="Empezado">Empezado</option>
-            <option value="Sin probar">Sin probar</option>
-            <option value="Abandonado">Abandonado</option>
-            <option value="Probado">Probado</option>
-            <option value="No aplica">No aplica</option>
+            {statusValues.map((value) => (
+              <option key={value} value={value}>
+                {statusLabel(value)}
+              </option>
+            ))}
           </select>
         </label>
 
         <label className="field">
-          <span>Ranking</span>
+          <span>{t.form.labels.ranking}</span>
           <select value={formState.ranking} onChange={handleChange('ranking')}>
-            <option value="S+">S+</option>
-            <option value="S">S</option>
-            <option value="A">A</option>
-            <option value="B">B</option>
-            <option value="C">C</option>
-            <option value="D">D</option>
-            <option value="E">E</option>
-            <option value="F">F</option>
-            <option value="G">G</option>
+            {rankingValues.map((value) => (
+              <option key={value} value={value}>
+                {rankingLabel(value)}
+              </option>
+            ))}
           </select>
         </label>
       </div>
@@ -140,110 +148,110 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           className="collapse-toggle__btn"
           onClick={() => setShowAdvanced((prev) => !prev)}
           aria-expanded={showAdvanced}
-          aria-label={showAdvanced ? 'Ocultar campos avanzados' : 'Mostrar campos avanzados'}
+          aria-label={showAdvanced ? t.form.toggleHide : t.form.toggleShow}
         >
           <span className={`chevron ${showAdvanced ? 'chevron--up' : 'chevron--down'}`} />
-          <span>{showAdvanced ? 'Ocultar campos avanzados' : 'Mostrar campos avanzados'}</span>
+          <span>{showAdvanced ? t.form.toggleHide : t.form.toggleShow}</span>
         </button>
       </div>
 
       {showAdvanced && (
         <div className="form-grid">
           <label className="field">
-            <span>Fecha de lanzamiento</span>
+            <span>{t.form.labels.releaseDate}</span>
             <input
               type="text"
               inputMode="numeric"
               value={formState.releaseDate || ''}
               onChange={handleChange('releaseDate')}
-              placeholder="dd/mm/yyyy"
+              placeholder={t.form.placeholders.releaseDate}
             />
           </label>
 
           <label className="field">
-            <span>Publisher / Desarrollador</span>
+            <span>{t.form.labels.publisher}</span>
             <input
               type="text"
               value={formState.publisher || ''}
               onChange={handleChange('publisher')}
-              placeholder="Ej. FromSoftware, Bandai Namco"
+              placeholder={t.form.placeholders.publisher}
             />
           </label>
 
           <label className="field">
-            <span>Género(s)</span>
+            <span>{t.form.labels.genres}</span>
             <input
               type="text"
               value={formState.genres || ''}
               onChange={handleChange('genres')}
-              placeholder="Acción, RPG, Soulslike"
+              placeholder={t.form.placeholders.genres}
             />
           </label>
 
           <label className="field">
-            <span>Fecha primera vez</span>
+            <span>{t.form.labels.firstPlayed}</span>
             <input
               type="text"
               inputMode="numeric"
               value={formState.firstPlayedAt || ''}
               onChange={handleChange('firstPlayedAt')}
-              placeholder="dd/mm/yyyy"
+              placeholder={t.form.placeholders.firstPlayed}
             />
           </label>
 
           <label className="field">
-            <span>Fecha comienzo (última partida)</span>
+            <span>{t.form.labels.startDate}</span>
             <input
               type="text"
               inputMode="numeric"
               value={formState.startDate || ''}
               onChange={handleChange('startDate')}
-              placeholder="dd/mm/yyyy"
+              placeholder={t.form.placeholders.startDate}
             />
           </label>
 
           <label className="field">
-            <span>Fecha de fin</span>
+            <span>{t.form.labels.endDate}</span>
             <input
               type="text"
               inputMode="numeric"
               value={formState.endDate || ''}
               onChange={handleChange('endDate')}
-              placeholder="dd/mm/yyyy"
+              placeholder={t.form.placeholders.endDate}
             />
           </label>
 
           <label className="field">
-            <span>Horas jugadas (última partida)</span>
+            <span>{t.form.labels.lastSession}</span>
             <input
               type="number"
               min="0"
               step="0.1"
               value={formState.lastSessionHours ?? ''}
               onChange={handleNumberChange('lastSessionHours')}
-              placeholder="Ej. 12.5"
+              placeholder={t.form.placeholders.lastSession}
             />
           </label>
 
           <label className="field">
-            <span>Año completado</span>
+            <span>{t.form.labels.yearsPlayed}</span>
             <input
               type="text"
               value={formState.yearsPlayed || ''}
               onChange={handleChange('yearsPlayed')}
-              placeholder="Ej. 2018, 2021"
+              placeholder={t.form.placeholders.yearsPlayed}
             />
           </label>
 
           <label className="field">
-            <span>Horas totales</span>
+            <span>{t.form.labels.totalHours}</span>
             <input
               type="number"
               min="0"
               step="0.1"
               value={formState.totalHours ?? ''}
               onChange={handleNumberChange('totalHours')}
-              placeholder="Ej. 140"
+              placeholder={t.form.placeholders.totalHours}
             />
           </label>
         </div>
@@ -251,12 +259,12 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
 
       {showAdvanced && (
         <label className="field">
-          <span>Comentario</span>
+          <span>{t.form.labels.comment}</span>
           <textarea
             value={formState.comment}
             onChange={handleChange('comment')}
             rows={3}
-            placeholder="Notas rápidas, impresiones, etc."
+            placeholder={t.form.placeholders.comment}
           />
         </label>
       )}
@@ -266,11 +274,11 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
       <div className="form__actions">
         {initialGame && onCancelEdit && (
           <button type="button" className="button button--ghost" onClick={onCancelEdit}>
-            Cancelar
+            {t.form.cancel}
           </button>
         )}
         <button type="submit" className="button">
-          {initialGame ? 'Guardar cambios' : 'Agregar juego'}
+          {initialGame ? t.form.save : t.form.add}
         </button>
       </div>
     </form>
@@ -278,9 +286,3 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
 };
 
 export default GameForm;
-
-
-
-
-
-

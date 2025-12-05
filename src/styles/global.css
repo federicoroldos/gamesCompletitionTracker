@@ -60,6 +60,46 @@ body {
   gap: 8px;
 }
 
+.app__header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.language-switcher {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0;
+  color: #e8edf5;
+  font-size: 14px;
+}
+
+.language-toggle {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.language-pill {
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: none;
+  color: #e8edf5;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.language-pill.is-active {
+  background: linear-gradient(135deg, #7c3aed, #06b6d4);
+  box-shadow: 0 10px 20px rgba(124, 58, 237, 0.25);
+}
+
 .eyebrow {
   margin: 0 0 4px;
   text-transform: uppercase;

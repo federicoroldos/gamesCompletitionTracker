@@ -1,7 +1,8 @@
 import { ChangeEvent, useRef, useState } from "react";
 import * as XLSX from "xlsx";
-import { parseExcelFile } from "../utils/excelImport";
+import { useI18n } from "../i18n";
 import { Game } from "../types/Game";
+import { parseExcelFile } from "../utils/excelImport";
 
 interface Props {
   onExportJson: () => string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
+  const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
     link.download = "gametracker-backup.json";
     link.click();
     URL.revokeObjectURL(url);
-    setMessage("Exportado a archivo local");
+    setMessage(t.localImport.messages.exportedJson);
   };
 
   const handleOpenFile = () => {
@@ -37,7 +39,7 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
       const data: Game[] = JSON.parse(json);
 
       if (!Array.isArray(data) || data.length === 0) {
-        setMessage("No hay datos para exportar a Excel");
+        setMessage(t.localImport.messages.noDataExcel);
         return;
       }
 
@@ -53,7 +55,7 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
         "Fecha primera vez": game.firstPlayedAt ?? "",
         "Fecha de comienzo": game.startDate ?? "",
         "Fecha de fin": game.endDate ?? "",
-        "Horas jugadas (última partida)": game.lastSessionHours ?? "",
+        "Horas jugadas (Última partida)": game.lastSessionHours ?? "",
         "Año completado": game.yearsPlayed ?? "",
         "Horas totales": game.totalHours ?? "",
         "Creado el": game.createdAt
@@ -63,9 +65,9 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Juegos");
       XLSX.writeFile(workbook, "gametracker-backup.xlsx");
-      setMessage(`Exportado a Excel (${rows.length} registros)`);
+      setMessage(t.localImport.messages.exportedExcel(rows.length));
     } catch (error) {
-      setMessage("No se pudo exportar a Excel");
+      setMessage(t.localImport.messages.noDataExcel);
     }
   };
 
@@ -82,8 +84,8 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
       const result = onImportJson(content);
       setMessage(
         result.ok
-          ? `Importado correctamente (${result.count ?? 0} registros)`
-          : result.message || "Error al importar"
+          ? t.localImport.messages.importJsonOk(result.count ?? 0)
+          : result.message || t.localImport.messages.importJsonError
       );
     };
     reader.readAsText(file);
@@ -94,14 +96,14 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
     const file = event.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    setMessage("Importando Excel...");
+    setMessage(t.localImport.messages.importingExcel);
     try {
       const parsed = await parseExcelFile(file);
       onImportExcel(parsed);
-      setMessage(`Importado desde Excel (${parsed.length} registros)`);
+      setMessage(t.localImport.messages.importedExcel(parsed.length));
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Error al importar Excel (usa el archivo original)";
+        error instanceof Error ? error.message : t.localImport.messages.importExcelError;
       setMessage(msg);
     } finally {
       setLoading(false);
@@ -111,19 +113,19 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
 
   return (
     <section className="panel panel--stacked">
-      <h2>Importar / Exportar archivo</h2>
+      <h2>{t.localImport.title}</h2>
       <div className="backup-buttons">
         <button className="button" onClick={handleDownloadFile}>
-          Exportar JSON
+          {t.localImport.exportJson}
         </button>
         <button className="button" onClick={handleDownloadExcel}>
-          Exportar Excel
+          {t.localImport.exportExcel}
         </button>
         <button className="button button--ghost" onClick={handleOpenFile} disabled={loading}>
-          Importar JSON
+          {t.localImport.importJson}
         </button>
         <button className="button button--ghost" onClick={handleOpenExcel} disabled={loading}>
-          Importar Excel
+          {t.localImport.importExcel}
         </button>
         <input
           ref={fileInputRef}

@@ -1,12 +1,14 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import BackupPanel from "./components/BackupPanel";
 import GameFilters from "./components/GameFilters";
 import GameForm from "./components/GameForm";
 import GameList from "./components/GameList";
-import BackupPanel from "./components/BackupPanel";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 import LegendPanel from "./components/LegendPanel";
 import LocalImportPanel from "./components/LocalImportPanel";
 import { useGameStorage } from "./hooks/useGameStorage";
 import { useGoogleAuth } from "./hooks/useGoogleAuth";
+import { useI18n } from "./i18n";
 import { Game, GameRanking, GameStatus } from "./types/Game";
 
 type SortOption = "titulo" | "ranking";
@@ -18,6 +20,7 @@ const App = () => {
     useGameStorage();
 
   const { user, accessToken, loading: authLoading, signIn, signOut } = useGoogleAuth();
+  const { t, lang } = useI18n();
   const isAuthenticated = Boolean(user && accessToken);
 
   const [statusFilter, setStatusFilter] = useState<GameStatus | "todos">("todos");
@@ -42,8 +45,8 @@ const App = () => {
       return [...byRanking].sort((a, b) => rankingOrder.indexOf(a.ranking) - rankingOrder.indexOf(b.ranking));
     }
 
-    return [...byRanking].sort((a, b) => a.title.localeCompare(b.title, "es"));
-  }, [games, search, statusFilter, rankingFilter, sortBy]);
+    return [...byRanking].sort((a, b) => a.title.localeCompare(b.title, lang === "en" ? "en" : "es"));
+  }, [games, search, statusFilter, rankingFilter, sortBy, lang]);
 
   const pageCount = Math.max(1, Math.ceil(filteredGames.length / itemsPerPage));
 
@@ -86,7 +89,7 @@ const App = () => {
 
   const handleDeleteAll = () => {
     if (!games.length) return;
-    const confirmed = window.confirm("Seguro que quieres borrar todos los registros?");
+    const confirmed = window.confirm(t.list.actions.confirmDeleteAll);
     if (confirmed) {
       clearGames();
       setPage(1);
@@ -97,34 +100,37 @@ const App = () => {
     <div className="app">
       <header className="app__header">
         <div>
-          <p className="app__eyebrow">Games Progress Tracker</p>
-          <h1>Tu lista de videojuegos en un solo lugar</h1>
-          <p className="app__subtitle">Entra con tu cuenta, gestiona tus juegos y respaldalos en Google Drive.</p>
+          <p className="app__eyebrow">{t.header.eyebrow}</p>
+          <h1>{t.header.title}</h1>
+          <p className="app__subtitle">{t.header.subtitle}</p>
         </div>
-        <div className="app__stats">
-          <div className="stat">
-            <span className="stat__label">Total</span>
-            <span className="stat__value">{games.length}</span>
-          </div>
-          <div className="stat">
-            <span className="stat__label">Sin probar</span>
-            <span className="stat__value">{games.filter((g) => g.status === "Sin probar").length}</span>
-          </div>
-          <div className="stat">
-            <span className="stat__label">Empezado</span>
-            <span className="stat__value">{games.filter((g) => g.status === "Empezado").length}</span>
-          </div>
-          <div className="stat">
-            <span className="stat__label">Completado</span>
-            <span className="stat__value">{games.filter((g) => g.status === "Completado").length}</span>
-          </div>
-          <div className="stat">
-            <span className="stat__label">Platino</span>
-            <span className="stat__value">{games.filter((g) => g.status === "Platino").length}</span>
-          </div>
-          <div className="stat">
-            <span className="stat__label">Abandonado</span>
-            <span className="stat__value">{games.filter((g) => g.status === "Abandonado").length}</span>
+        <div className="app__header-actions">
+          <LanguageSwitcher />
+          <div className="app__stats">
+            <div className="stat">
+              <span className="stat__label">{t.stats.total}</span>
+              <span className="stat__value">{games.length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat__label">{t.stats.unplayed}</span>
+              <span className="stat__value">{games.filter((g) => g.status === "Sin probar").length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat__label">{t.stats.started}</span>
+              <span className="stat__value">{games.filter((g) => g.status === "Empezado").length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat__label">{t.stats.completed}</span>
+              <span className="stat__value">{games.filter((g) => g.status === "Completado").length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat__label">{t.stats.platinum}</span>
+              <span className="stat__value">{games.filter((g) => g.status === "Platino").length}</span>
+            </div>
+            <div className="stat">
+              <span className="stat__label">{t.stats.abandoned}</span>
+              <span className="stat__value">{games.filter((g) => g.status === "Abandonado").length}</span>
+            </div>
           </div>
         </div>
       </header>
@@ -132,38 +138,36 @@ const App = () => {
       <section className="panel auth-hero">
         <div className="hero-grid">
           <div className="hero-login">
-            <h2>Inicio de Sesión</h2>
-            <p className="muted">
-              Primero inicia sesión para habilitar la lista de juegos y la sincronización con Google Drive.
-            </p>
+            <h2>{t.auth.title}</h2>
+            <p className="muted">{t.auth.description}</p>
             <div className="auth-actions">
               {isAuthenticated ? (
                 <>
                   <span className="pill pill--success pill--xl">
-                    Sesión activa {user?.email ? `· ${user.email}` : ""}
+                    {t.auth.activeSession} {user?.email ? `· ${user.email}` : ""}
                   </span>
                   <button className="button button--xl button--secondary" onClick={signOut} disabled={authLoading}>
-                    Cerrar sesión
+                    {t.auth.signOut}
                   </button>
                 </>
               ) : (
                 <button className="button button--xl" onClick={signIn} disabled={authLoading}>
-                  Iniciar con Google
+                  {t.auth.signIn}
                 </button>
               )}
             </div>
             <div className="hero-steps">
               <div className="step-card">
                 <span className="pill">1</span>
-                <p>Inicia sesión con Google.</p>
+                <p>{t.steps[0]}</p>
               </div>
               <div className="step-card">
                 <span className="pill">2</span>
-                <p>Gestiona tu lista de juegos.</p>
+                <p>{t.steps[1]}</p>
               </div>
               <div className="step-card">
                 <span className="pill">3</span>
-                <p>Respáldalos en Drive.</p>
+                <p>{t.steps[2]}</p>
               </div>
             </div>
           </div>
@@ -174,7 +178,7 @@ const App = () => {
               onImportExcel={(items) => addMany(items)}
               showDrive
               showLocal={false}
-              title="Respaldo en Google Drive"
+              title={t.backup.title}
               authContext={{ user, accessToken, loading: authLoading, signIn, signOut }}
             />
           </div>
@@ -183,7 +187,7 @@ const App = () => {
 
       <main className="layout">
         <section className="panel">
-          <h2>{editing ? "Editar juego" : "Agregar juego"}</h2>
+          <h2>{editing ? t.form.editTitle : t.form.newTitle}</h2>
           <GameForm
             key={editing?.id ?? "new"}
             initialGame={editing}
@@ -195,20 +199,20 @@ const App = () => {
         <section className="panel panel--scroll">
           <div className="games-content">
             <div className="panel__header">
-              <h2>Juegos guardados</h2>
+              <h2>{t.list.title}</h2>
               <div className="panel__controls">
                 <form className="search-box" onSubmit={handleSearchSubmit}>
                   <label className="field search-box__field">
-                    <span>Buscar</span>
+                    <span>{t.search.label}</span>
                     <div className="search-box__row">
                       <input
                         type="text"
-                        placeholder="Buscar por titulo..."
+                        placeholder={t.search.placeholder}
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                       />
                       <button type="submit" className="button button--ghost">
-                        Buscar
+                        {t.search.button}
                       </button>
                     </div>
                   </label>
@@ -232,8 +236,8 @@ const App = () => {
             />
             <div className="table-footer">
               <div className="pagination">
-                <button className="page-btn" onClick={() => setPage(1)} disabled={page === 1} aria-label="Primera pagina">
-                  «
+                <button className="page-btn" onClick={() => setPage(1)} disabled={page === 1} aria-label={t.list.pagination.first}>
+                  {"<<"}
                 </button>
                 {Array.from({ length: pageCount }, (_, idx) => idx + 1)
                   .filter((n) => n >= page - 1 && n <= page + 4)
@@ -242,17 +246,17 @@ const App = () => {
                       key={n}
                       className={`page-btn ${n === page ? "page-btn--active" : ""}`}
                       onClick={() => setPage(n)}
-                      aria-label={`Pagina ${n}`}
+                      aria-label={`${t.list.pagination.page} ${n}`}
                     >
                       {n}
                     </button>
                   ))}
-                <button className="page-btn" onClick={() => setPage(pageCount)} disabled={page === pageCount} aria-label="Ultima pagina">
-                  »
+                <button className="page-btn" onClick={() => setPage(pageCount)} disabled={page === pageCount} aria-label={t.list.pagination.last}>
+                  {">>"}
                 </button>
               </div>
               <button className="button button--danger delete-all-btn" onClick={handleDeleteAll} disabled={!games.length}>
-                Borrar todos
+                {t.list.actions.deleteAll}
               </button>
             </div>
           </div>
@@ -266,7 +270,7 @@ const App = () => {
       />
       <LegendPanel />
       <footer className="app-footer">
-        Creado por {" "}
+        {t.footer.createdBy}{" "}
         <a href="https://github.com/federicoroldos" target="_blank" rel="noreferrer">
           federicoroldos
         </a>

@@ -1,9 +1,10 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { User } from 'firebase/auth';
+import { useI18n } from '../i18n';
+import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { Game } from '../types/Game';
 import { downloadFromAppData, ensureAppDataFile, uploadToAppData } from '../utils/googleDriveClient';
 import { parseExcelFile } from '../utils/excelImport';
-import { Game } from '../types/Game';
-import { useGoogleAuth } from '../hooks/useGoogleAuth';
 
 interface Props {
   onExportJson: () => string;
@@ -27,9 +28,10 @@ const BackupPanel = ({
   onImportExcel,
   showDrive = true,
   showLocal = true,
-  title = 'Respaldo y sincronizacion',
+  title,
   authContext
 }: Props) => {
+  const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
   const {
@@ -50,15 +52,15 @@ const BackupPanel = ({
 
   const ensureFile = async (token: string) => {
     setLoading(true);
-    pushStatus('Buscando/creando backup en Drive (appData)...');
+    pushStatus(t.backup.messages.ensureFile);
     try {
       const id = await ensureAppDataFile(token);
       setDriveFileId(id);
-      pushStatus('Archivo listo en appDataFolder');
+      pushStatus(t.backup.messages.fileReady);
       return id;
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Error al preparar el archivo en Drive';
+        error instanceof Error ? error.message : t.backup.messages.uploadError;
       pushStatus(message);
       return '';
     } finally {
@@ -68,7 +70,7 @@ const BackupPanel = ({
 
   const ensureDriveSession = () => {
     if (!hasDriveSession) {
-      pushStatus('Primero inicia sesion con Google para usar Google Drive.');
+      pushStatus(t.backup.messages.needAuth);
       return '';
     }
     return accessToken ?? '';
@@ -83,7 +85,7 @@ const BackupPanel = ({
     link.download = 'gametracker-backup.json';
     link.click();
     URL.revokeObjectURL(url);
-    pushStatus('Exportado a archivo local');
+    pushStatus(t.backup.messages.localExported);
   };
 
   const handleOpenFile = () => {
@@ -103,8 +105,8 @@ const BackupPanel = ({
       const result = onImportJson(content);
       pushStatus(
         result.ok
-          ? `Importado correctamente (${result.count ?? 0} registros)`
-          : result.message || 'Error al importar'
+          ? t.backup.importedJson(result.count ?? 0)
+          : result.message || t.backup.messages.importError
       );
     };
     reader.readAsText(file);
@@ -115,14 +117,14 @@ const BackupPanel = ({
     const file = event.target.files?.[0];
     if (!file) return;
     setLoading(true);
-    pushStatus('Importando Excel...');
+    pushStatus(t.backup.messages.excelImporting);
     try {
       const parsed = await parseExcelFile(file);
       onImportExcel(parsed);
-      pushStatus(`Importado desde Excel (${parsed.length} registros)`);
+      pushStatus(t.backup.importedExcel(parsed.length));
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Error al importar Excel (usa el archivo original)';
+        error instanceof Error ? error.message : t.backup.messages.excelImportError;
       pushStatus(message);
     } finally {
       setLoading(false);
@@ -138,12 +140,12 @@ const BackupPanel = ({
     if (!fileId) return;
 
     setLoading(true);
-    pushStatus('Subiendo a Google Drive (appData)...');
+    pushStatus(t.backup.messages.uploadStart);
     try {
       await uploadToAppData(token, fileId, onExportJson());
-      pushStatus('Backup subido a Google Drive (appData)');
+      pushStatus(t.backup.messages.uploadOk);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Error al subir a Drive';
+      const message = error instanceof Error ? error.message : t.backup.messages.uploadError;
       pushStatus(message);
     } finally {
       setLoading(false);
@@ -158,18 +160,18 @@ const BackupPanel = ({
     if (!fileId) return;
 
     setLoading(true);
-    pushStatus('Descargando de Google Drive (appData)...');
+    pushStatus(t.backup.messages.downloadStart);
     try {
       const content = await downloadFromAppData(token, fileId);
       const result = onImportJson(content);
       pushStatus(
         result.ok
-          ? `Importado desde Google Drive (${result.count ?? 0} registros)`
-          : result.message || 'Error al importar'
+          ? t.backup.importedDrive(result.count ?? 0)
+          : result.message || t.backup.messages.importError
       );
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Error al descargar desde Drive';
+        error instanceof Error ? error.message : t.backup.messages.downloadError;
       pushStatus(message);
     } finally {
       setLoading(false);
@@ -184,17 +186,17 @@ const BackupPanel = ({
 
   useEffect(() => {
     if (!hasDriveSession && !authLoading && !driveHintShownRef.current) {
-      pushStatus('Inicia con Google para habilitar las acciones de Drive.');
+      pushStatus(t.backup.messages.hint);
       driveHintShownRef.current = true;
     }
     if (hasDriveSession) {
       driveHintShownRef.current = false;
     }
-  }, [hasDriveSession, authLoading]);
+  }, [hasDriveSession, authLoading, t.backup.messages.hint]);
 
   return (
     <div className="panel panel--stacked">
-      <h2>{title}</h2>
+      <h2>{title ?? t.backup.defaultTitle}</h2>
       <div className="backup-actions">
         {showDrive && (
           <div className="backup-group">
@@ -204,14 +206,14 @@ const BackupPanel = ({
                 onClick={handleUploadDrive}
                 disabled={loading || authLoading}
               >
-                Subir a Drive
+                {t.backup.driveUpload}
               </button>
               <button
                 className="button button--xl"
                 onClick={handleDownloadDrive}
                 disabled={loading || authLoading}
               >
-                Descargar de Drive
+                {t.backup.driveDownload}
               </button>
             </div>
           </div>
@@ -219,16 +221,16 @@ const BackupPanel = ({
 
         {showLocal && (
           <div className="backup-group">
-            <h3>Archivo local</h3>
+            <h3>{t.backup.localTitle}</h3>
             <div className="backup-buttons">
               <button className="button" onClick={handleDownloadFile}>
-                Exportar JSON
+                {t.backup.exportJson}
               </button>
               <button className="button button--ghost" onClick={handleOpenFile}>
-                Importar JSON
+                {t.backup.importJson}
               </button>
               <button className="button button--ghost" onClick={handleOpenExcel}>
-                Importar Excel
+                {t.backup.importExcel}
               </button>
               <input
                 ref={fileInputRef}
@@ -252,7 +254,7 @@ const BackupPanel = ({
       {showDrive && (
         <div className="backup-console">
           <div className="backup-console__header">
-            <span>Salida en Consola</span>
+            <span>{t.backup.consoleTitle}</span>
           </div>
           <div className="backup-console__body">
             {logs.length ? (
@@ -262,7 +264,7 @@ const BackupPanel = ({
                 </div>
               ))
             ) : (
-              <p className="muted">Sin eventos aun.</p>
+              <p className="muted">{t.backup.consoleEmpty}</p>
             )}
           </div>
         </div>
