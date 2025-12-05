@@ -71,7 +71,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formState.title.trim()) {
-      setError('El tÃ­tulo es obligatorio');
+      setError('El título es obligatorio');
       return;
     }
 
@@ -84,7 +84,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
     <form className="form" onSubmit={handleSubmit}>
       <div className="form-grid">
         <label className="field">
-          <span>TÃ­tulo *</span>
+          <span>Título *</span>
           <input
             type="text"
             value={formState.title}
@@ -171,12 +171,12 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>GÃ©nero(s)</span>
+            <span>Género(s)</span>
             <input
               type="text"
               value={formState.genres || ''}
               onChange={handleChange('genres')}
-              placeholder="AcciÃ³n, RPG, Soulslike"
+              placeholder="Acción, RPG, Soulslike"
             />
           </label>
 
@@ -192,7 +192,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Fecha comienzo (Ãºltima partida)</span>
+            <span>Fecha comienzo (última partida)</span>
             <input
               type="text"
               inputMode="numeric"
@@ -214,7 +214,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           </label>
 
           <label className="field">
-            <span>Horas jugadas (Ãºltima partida)</span>
+            <span>Horas jugadas (última partida)</span>
             <input
               type="number"
               min="0"
@@ -256,7 +256,7 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
             value={formState.comment}
             onChange={handleChange('comment')}
             rows={3}
-            placeholder="Notas rÃ¡pidas, impresiones, etc."
+            placeholder="Notas rápidas, impresiones, etc."
           />
         </label>
       )}

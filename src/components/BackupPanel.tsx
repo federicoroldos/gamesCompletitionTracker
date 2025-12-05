@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { User } from 'firebase/auth';
 import { downloadFromAppData, ensureAppDataFile, uploadToAppData } from '../utils/googleDriveClient';
 import { parseExcelFile } from '../utils/excelImport';
 import { Game } from '../types/Game';
@@ -8,12 +9,34 @@ interface Props {
   onExportJson: () => string;
   onImportJson: (json: string) => { ok: boolean; message?: string; count?: number };
   onImportExcel: (games: Omit<Game, 'id' | 'createdAt'>[]) => void;
+  showDrive?: boolean;
+  showLocal?: boolean;
+  title?: string;
+  authContext?: {
+    user: User | null;
+    accessToken: string | null;
+    loading: boolean;
+    signIn: () => Promise<void>;
+    signOut: () => Promise<void>;
+  };
 }
 
-const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
+const BackupPanel = ({
+  onExportJson,
+  onImportJson,
+  onImportExcel,
+  showDrive = true,
+  showLocal = true,
+  title = 'Respaldo y sincronizacion',
+  authContext
+}: Props) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const excelInputRef = useRef<HTMLInputElement | null>(null);
-  const { user, accessToken, loading: authLoading, signIn, signOut } = useGoogleAuth();
+  const {
+    user,
+    accessToken,
+    loading: authLoading
+  } = authContext ?? useGoogleAuth();
   const [driveFileId, setDriveFileId] = useState('');
   const [loading, setLoading] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
@@ -171,88 +194,79 @@ const BackupPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) => {
 
   return (
     <div className="panel panel--stacked">
-      <h2>Respaldo y sincronizacion</h2>
+      <h2>{title}</h2>
       <div className="backup-actions">
-        <div className="backup-group">
-          <h3>Google Drive</h3>
-          <div className="auth-row">
-            <p className="muted">
-              {user ? `Sesion: ${user.email ?? user.displayName ?? 'Usuario'}` : 'Sin sesion'}
-            </p>
+        {showDrive && (
+          <div className="backup-group">
+            <div className="backup-buttons drive-actions">
+              <button
+                className="button button--xl"
+                onClick={handleUploadDrive}
+                disabled={loading || authLoading}
+              >
+                Subir a Drive
+              </button>
+              <button
+                className="button button--xl"
+                onClick={handleDownloadDrive}
+                disabled={loading || authLoading}
+              >
+                Descargar de Drive
+              </button>
+            </div>
           </div>
-          <div className="backup-buttons drive-actions">
-            <button
-              className="button"
-              onClick={handleUploadDrive}
-              disabled={loading || authLoading}
-            >
-              Subir a Drive
-            </button>
-            <button
-              className="button button--ghost"
-              onClick={handleDownloadDrive}
-              disabled={loading || authLoading}
-            >
-              Descargar de Drive
-            </button>
-            {user ? (
-              <button className="button button--ghost" onClick={signOut} disabled={authLoading}>
-                Cerrar sesion
+        )}
+
+        {showLocal && (
+          <div className="backup-group">
+            <h3>Archivo local</h3>
+            <div className="backup-buttons">
+              <button className="button" onClick={handleDownloadFile}>
+                Exportar JSON
               </button>
+              <button className="button button--ghost" onClick={handleOpenFile}>
+                Importar JSON
+              </button>
+              <button className="button button--ghost" onClick={handleOpenExcel}>
+                Importar Excel
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json"
+                hidden
+                onChange={handleFileChange}
+              />
+              <input
+                ref={excelInputRef}
+                type="file"
+                accept=".xls,.xlsx,.xlsm"
+                hidden
+                onChange={handleExcelChange}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showDrive && (
+        <div className="backup-console">
+          <div className="backup-console__header">
+            <span>Consola de respaldo</span>
+          </div>
+          <div className="backup-console__body">
+            {logs.length ? (
+              logs.map((line, idx) => (
+                <div key={idx} className="backup-console__line">
+                  {line}
+                </div>
+              ))
             ) : (
-              <button className="button" onClick={signIn} disabled={authLoading}>
-                Iniciar con Google
-              </button>
+              <p className="muted">Sin eventos aun.</p>
             )}
           </div>
         </div>
-
-        <div className="backup-group">
-          <h3>Archivo local</h3>
-          <div className="backup-buttons">
-            <button className="button" onClick={handleDownloadFile}>
-              Exportar JSON
-            </button>
-            <button className="button button--ghost" onClick={handleOpenFile}>
-              Importar JSON
-            </button>
-            <button className="button button--ghost" onClick={handleOpenExcel}>
-              Importar Excel
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/json"
-              hidden
-              onChange={handleFileChange}
-            />
-            <input
-              ref={excelInputRef}
-              type="file"
-              accept=".xls,.xlsx,.xlsm"
-              hidden
-              onChange={handleExcelChange}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="backup-console">
-        <div className="backup-console__header">
-          <span>Consola de respaldo</span>
-        </div>
-        <div className="backup-console__body">
-          {logs.length ? (
-            logs.map((line, idx) => (
-              <div key={idx} className="backup-console__line">
-                {line}
-              </div>
-            ))
-          ) : (
-            <p className="muted">Sin eventos aun.</p>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 };
