@@ -88,19 +88,6 @@ body {
   box-shadow: 0 14px 28px rgba(6, 182, 212, 0.35);
 }
 
-.auth-steps {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-}
-
-.auth-steps .pill {
-  background: rgba(124, 58, 237, 0.12);
-  color: #c4b5fd;
-}
-
 .stat {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -217,47 +204,6 @@ body {
 
 .hero-drive .backup-console {
   margin-top: 38px;
-}
-
-.workspace {
-  position: relative;
-}
-
-.workspace-grid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 16px;
-  align-items: start;
-}
-
-.workspace--locked .panel {
-  pointer-events: none;
-  filter: grayscale(0.3) blur(1px);
-  opacity: 0.65;
-}
-
-.workspace__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  gap: 10px;
-  padding: 24px;
-  text-align: center;
-  background: rgba(8, 15, 30, 0.82);
-  backdrop-filter: blur(4px);
-  border-radius: 14px;
-}
-
-.games-panel {
-  min-height: 560px;
-}
-
-.side-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
 }
 
 .panel--scroll {
@@ -693,12 +639,6 @@ select option {
   margin-top: 8px;
 }
 
-.status-text {
-  margin-top: 12px;
-  color: #cbd5e1;
-  font-weight: 600;
-}
-
 .drive-actions {
   margin-top: 38px;
   align-items: center;
@@ -762,13 +702,6 @@ select option {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
-}
-
-.auth-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 
 .app-footer {
