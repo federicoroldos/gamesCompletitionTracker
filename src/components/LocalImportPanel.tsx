@@ -1,4 +1,5 @@
 import { ChangeEvent, useRef, useState } from "react";
+import * as XLSX from "xlsx";
 import { parseExcelFile } from "../utils/excelImport";
 import { Game } from "../types/Game";
 
@@ -28,6 +29,44 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
 
   const handleOpenFile = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleDownloadExcel = () => {
+    try {
+      const json = onExportJson();
+      const data: Game[] = JSON.parse(json);
+
+      if (!Array.isArray(data) || data.length === 0) {
+        setMessage("No hay datos para exportar a Excel");
+        return;
+      }
+
+      const rows = data.map((game) => ({
+        Nombre: game.title,
+        Plataforma: game.platform,
+        Estado: game.status,
+        Tier: game.ranking,
+        Notas: game.comment,
+        "Fecha de lanzamiento": game.releaseDate ?? "",
+        Publisher: game.publisher ?? "",
+        "Género(s)": game.genres ?? "",
+        "Fecha primera vez": game.firstPlayedAt ?? "",
+        "Fecha de comienzo": game.startDate ?? "",
+        "Fecha de fin": game.endDate ?? "",
+        "Horas jugadas (última partida)": game.lastSessionHours ?? "",
+        "Año completado": game.yearsPlayed ?? "",
+        "Horas totales": game.totalHours ?? "",
+        "Creado el": game.createdAt
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Juegos");
+      XLSX.writeFile(workbook, "gametracker-backup.xlsx");
+      setMessage(`Exportado a Excel (${rows.length} registros)`);
+    } catch (error) {
+      setMessage("No se pudo exportar a Excel");
+    }
   };
 
   const handleOpenExcel = () => {
@@ -76,6 +115,9 @@ const LocalImportPanel = ({ onExportJson, onImportJson, onImportExcel }: Props) 
       <div className="backup-buttons">
         <button className="button" onClick={handleDownloadFile}>
           Exportar JSON
+        </button>
+        <button className="button" onClick={handleDownloadExcel}>
+          Exportar Excel
         </button>
         <button className="button button--ghost" onClick={handleOpenFile} disabled={loading}>
           Importar JSON
