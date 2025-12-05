@@ -139,8 +139,10 @@ const App = () => {
             <div className="auth-actions">
               {isAuthenticated ? (
                 <>
-                  <span className="pill pill--success">Sesión activa {user?.email ? `· ${user.email}` : ""}</span>
-                  <button className="button button--ghost" onClick={signOut} disabled={authLoading}>
+                  <span className="pill pill--success pill--xl">
+                    Sesión activa {user?.email ? `· ${user.email}` : ""}
+                  </span>
+                  <button className="button button--xl button--secondary" onClick={signOut} disabled={authLoading}>
                     Cerrar sesión
                   </button>
                 </>

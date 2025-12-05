@@ -252,7 +252,7 @@ const BackupPanel = ({
       {showDrive && (
         <div className="backup-console">
           <div className="backup-console__header">
-            <span>Consola de respaldo</span>
+            <span>Salida en Consola</span>
           </div>
           <div className="backup-console__body">
             {logs.length ? (
