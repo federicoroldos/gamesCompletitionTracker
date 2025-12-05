@@ -14,6 +14,9 @@ npm install
 
 ## Desarrollo
 ```bash
+npm run build
+```
+```bash
 npm run dev
 ```
 Levanta el servidor de Vite en modo desarrollo.
