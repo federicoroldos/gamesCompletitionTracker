@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, MouseEvent, useMemo, useState } from 'react';
 import { useI18n } from '../i18n';
 import { Game } from '../types/Game';
 
@@ -41,7 +41,23 @@ const statusValues: GameInput['status'][] = [
 const rankingValues: GameInput['ranking'][] = ['S+', 'S', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
 const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
-  const { t, statusLabel, rankingLabel } = useI18n();
+  const { t, statusLabel, rankingLabel, lang } = useI18n();
+  const dateInputLang = lang === 'es' ? 'es-ES' : 'en-GB';
+  const formatDateDisplay = useMemo(
+    () => (value?: string) => {
+      if (!value) return '';
+      const [year, month, day] = value.split('-');
+      if (!year || !month || !day) return '';
+      return `${day.padStart(2, '0')}/${month.padStart(2, '0')}/${year}`;
+    },
+    []
+  );
+  const handleDateFocus = (event: MouseEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    if (typeof input.showPicker === 'function') {
+      input.showPicker();
+    }
+  };
   const [formState, setFormState] = useState<GameInput>(
     initialGame
       ? {
@@ -160,11 +176,13 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           <label className="field">
             <span>{t.form.labels.releaseDate}</span>
             <input
-              type="text"
-              inputMode="numeric"
+              type="date"
+              lang={dateInputLang}
               value={formState.releaseDate || ''}
               onChange={handleChange('releaseDate')}
               placeholder={t.form.placeholders.releaseDate}
+              data-display={formatDateDisplay(formState.releaseDate) || t.form.placeholders.releaseDate}
+              onClick={handleDateFocus}
             />
           </label>
 
@@ -191,33 +209,39 @@ const GameForm = ({ initialGame, onSubmit, onCancelEdit }: Props) => {
           <label className="field">
             <span>{t.form.labels.firstPlayed}</span>
             <input
-              type="text"
-              inputMode="numeric"
+              type="date"
+              lang={dateInputLang}
               value={formState.firstPlayedAt || ''}
               onChange={handleChange('firstPlayedAt')}
               placeholder={t.form.placeholders.firstPlayed}
+              data-display={formatDateDisplay(formState.firstPlayedAt) || t.form.placeholders.firstPlayed}
+              onClick={handleDateFocus}
             />
           </label>
 
           <label className="field">
             <span>{t.form.labels.startDate}</span>
             <input
-              type="text"
-              inputMode="numeric"
+              type="date"
+              lang={dateInputLang}
               value={formState.startDate || ''}
               onChange={handleChange('startDate')}
               placeholder={t.form.placeholders.startDate}
+              data-display={formatDateDisplay(formState.startDate) || t.form.placeholders.startDate}
+              onClick={handleDateFocus}
             />
           </label>
 
           <label className="field">
             <span>{t.form.labels.endDate}</span>
             <input
-              type="text"
-              inputMode="numeric"
+              type="date"
+              lang={dateInputLang}
               value={formState.endDate || ''}
               onChange={handleChange('endDate')}
               placeholder={t.form.placeholders.endDate}
+              data-display={formatDateDisplay(formState.endDate) || t.form.placeholders.endDate}
+              onClick={handleDateFocus}
             />
           </label>
 

@@ -1,14 +1,14 @@
-import { useI18n } from '../i18n';
-import { GameRanking, GameStatus } from '../types/Game';
+import { useI18n } from "../i18n";
+import { GameRanking, GameStatus } from "../types/Game";
 
-type SortOption = 'titulo' | 'ranking';
+type SortOption = "titulo" | "ranking";
 
 interface Props {
-  statusFilter: GameStatus | 'todos';
-  rankingFilter: GameRanking | 'todos';
+  statusFilter: GameStatus | "todos";
+  rankingFilter: GameRanking | "todos";
   sortBy: SortOption;
-  onStatusChange: (value: GameStatus | 'todos') => void;
-  onRankingChange: (value: GameRanking | 'todos') => void;
+  onStatusChange: (value: GameStatus | "todos") => void;
+  onRankingChange: (value: GameRanking | "todos") => void;
   onSortChange: (value: SortOption) => void;
 }
 
@@ -21,8 +21,8 @@ const GameFilters = ({
   onSortChange
 }: Props) => {
   const { t, statusLabel, rankingLabel } = useI18n();
-  const statusOptions = Object.keys(t.statuses) as (GameStatus | 'todos')[];
-  const rankingOptions = Object.keys(t.rankingLabels) as (GameRanking | 'todos')[];
+  const statusOptions = Object.keys(t.statuses) as (GameStatus | "todos")[];
+  const rankingOptions = Object.keys(t.rankingLabels) as (GameRanking | "todos")[];
 
   return (
     <div className="filters">
@@ -30,7 +30,7 @@ const GameFilters = ({
         <span>{t.filters.status}</span>
         <select
           value={statusFilter}
-          onChange={(event) => onStatusChange(event.target.value as GameStatus | 'todos')}
+          onChange={(event) => onStatusChange(event.target.value as GameStatus | "todos")}
         >
           {statusOptions.map((value) => (
             <option key={value} value={value}>
@@ -44,7 +44,7 @@ const GameFilters = ({
         <span>{t.filters.ranking}</span>
         <select
           value={rankingFilter}
-          onChange={(event) => onRankingChange(event.target.value as GameRanking | 'todos')}
+          onChange={(event) => onRankingChange(event.target.value as GameRanking | "todos")}
         >
           {rankingOptions.map((value) => (
             <option key={value} value={value}>
